@@ -12,6 +12,9 @@ class HomeFragment : Fragment(R.layout.home) {
         super.onViewCreated(view, savedInstanceState)
         Log.d("DEBUG", "HomeFragment loaded")
 
-
+        // Set up settings button click listener
+        view.findViewById<Button>(R.id.btnSettings)?.setOnClickListener {
+            findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
+        }
     }
 }

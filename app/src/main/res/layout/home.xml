@@ -4,7 +4,7 @@
     android:id="@+id/homeLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="?android:windowBackground">
 
     <!-- 顶部操作栏：Sync 和 Setting -->
     <LinearLayout
@@ -22,7 +22,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:drawableStart="@drawable/ic_cloud"
-            android:text="Sync" />
+            android:text="SYNC"
+            android:textColor="@color/blue_500" />
 
         <Button
             android:id="@+id/btnSettings"
@@ -31,7 +32,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:drawableEnd="@drawable/ic_settings"
-            android:text="Setting" />
+            android:text="SETTING"
+            android:textColor="@color/blue_500" />
     </LinearLayout>
 
     <!-- Folders标题 -->
@@ -42,7 +44,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
         android:text="Folders"
-        android:textSize="18sp"
+        android:textColor="?android:textColorPrimary"
+        android:textSize="32sp"
         android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topActionBar" />
@@ -71,12 +74,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_backup"
-                android:contentDescription="@string/backups" />
+                android:contentDescription="@string/backups"
+                android:tint="?android:textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Backups"
+                android:textColor="?android:textColorPrimary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -91,12 +96,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_quiz"
-                android:contentDescription="@string/quiz" />
+                android:contentDescription="@string/quiz"
+                android:tint="?android:textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Quiz"
+                android:textColor="?android:textColorPrimary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -111,12 +118,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_search"
-                android:contentDescription="@string/search" />
+                android:contentDescription="@string/search"
+                android:tint="?android:textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Search"
+                android:textColor="?android:textColorPrimary"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -130,12 +139,14 @@
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_add"
-                android:contentDescription="@string/new_item" />
+                android:contentDescription="@string/new_item"
+                android:tint="?android:textColorPrimary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="New"
+                android:textColor="?android:textColorPrimary"
                 android:textSize="12sp" />
         </LinearLayout>
 
