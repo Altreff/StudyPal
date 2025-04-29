@@ -1,4 +1,4 @@
-package com.example.flashmaster
+package com.example.flashmaster.Setting
 
 data class SettingsItem(
     val id: Int,

@@ -1,4 +1,4 @@
-package com.example.flashmaster
+package com.example.flashmaster.Setting
 
 import android.content.Context
 import android.content.SharedPreferences

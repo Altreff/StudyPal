@@ -1,4 +1,4 @@
-package com.example.flashmaster
+package com.example.flashmaster.Setting
 
 import android.Manifest
 import android.content.Intent
@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flashmaster.R
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private lateinit var themeHelper: ThemeHelper

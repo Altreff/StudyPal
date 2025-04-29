@@ -26,7 +26,7 @@
 
     <fragment
         android:id="@+id/settingsFragment"
-        android:name="com.example.flashmaster.SettingsFragment"
+        android:name="com.example.flashmaster.Setting.SettingsFragment"
         android:label="Settings"
         tools:layout="@layout/fragment_settings" />
 </navigation>

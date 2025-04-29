@@ -1,12 +1,12 @@
-package com.example.flashmaster
+package com.example.flashmaster.Setting
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Switch
 import android.widget.TextView
 import androidx.appcompat.widget.SwitchCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flashmaster.R
 
 class SettingsAdapter(
     private val onItemClick: (SettingsItem) -> Unit,
