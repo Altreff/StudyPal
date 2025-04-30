@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "927671980064",
+    "project_id": "flashmaster-10875",
+    "storage_bucket": "flashmaster-10875.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:927671980064:android:63e028750335fcda3eec45",
+        "android_client_info": {
+          "package_name": "com.example.flashmaster"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYWiN2eexyr67gQBx00gkYcZDEzVTLNcM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
