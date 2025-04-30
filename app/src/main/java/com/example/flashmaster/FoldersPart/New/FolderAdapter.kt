@@ -5,11 +5,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flashmaster.R
+import java.text.SimpleDateFormat
+import java.util.Locale
 
-class FolderAdapter(private val folders: MutableList<FlashcardFolder>) :
-    RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
+class FolderAdapter(
+    private val onFolderClick: (FlashcardFolder) -> Unit
+) : ListAdapter<FlashcardFolder, FolderAdapter.FolderViewHolder>(FolderDiffCallback()) {
+
+    private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
 
     inner class FolderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val dragHandle: ImageView = itemView.findViewById(R.id.ivDragHandle)
@@ -18,6 +25,15 @@ class FolderAdapter(private val folders: MutableList<FlashcardFolder>) :
         val tvCardCount: TextView = itemView.findViewById(R.id.tvCardCount)
         val btnShare: ImageView = itemView.findViewById(R.id.ivShare)
         val btnOption: ImageView = itemView.findViewById(R.id.ivOptions)
+
+        init {
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onFolderClick(getItem(position))
+                }
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FolderViewHolder {
@@ -27,16 +43,19 @@ class FolderAdapter(private val folders: MutableList<FlashcardFolder>) :
     }
 
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
-        val folder = folders[position]
+        val folder = getItem(position)
         holder.tvName.text = folder.name
-        holder.tvDate.text = folder.createdAt
+        holder.tvDate.text = dateFormat.format(folder.createdAt.toDate())
         holder.tvCardCount.text = "${folder.cardCount} Cards"
     }
 
-    override fun getItemCount() = folders.size
+    private class FolderDiffCallback : DiffUtil.ItemCallback<FlashcardFolder>() {
+        override fun areItemsTheSame(oldItem: FlashcardFolder, newItem: FlashcardFolder): Boolean {
+            return oldItem.id == newItem.id
+        }
 
-    fun addFolder(folder: FlashcardFolder) {
-        folders.add(0, folder)
-        notifyItemInserted(0)
+        override fun areContentsTheSame(oldItem: FlashcardFolder, newItem: FlashcardFolder): Boolean {
+            return oldItem == newItem
+        }
     }
 }

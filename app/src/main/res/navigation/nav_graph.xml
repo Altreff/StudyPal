@@ -25,7 +25,20 @@
         <action
             android:id="@+id/action_homeFragment_to_loginFragment"
             app:destination="@id/loginFragment" />
+        <action
+            android:id="@+id/action_homeFragment_to_flashcardFragment"
+            app:destination="@id/flashcardFragment">
+            <argument
+                android:name="folderId"
+                app:argType="string" />
+        </action>
     </fragment>
+
+    <fragment
+        android:id="@+id/flashcardFragment"
+        android:name="com.example.flashmaster.FoldersPart.New.FlashcardFragment"
+        android:label="Flashcards"
+        tools:layout="@layout/fragment_flashcard" />
 
     <fragment
         android:id="@+id/settingsFragment"

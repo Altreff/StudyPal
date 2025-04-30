@@ -4,9 +4,7 @@ import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import com.example.flashmaster.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.google.firebase.Timestamp
 
 class AddFolderHandler(
     private val rootView: View,
@@ -21,17 +19,12 @@ class AddFolderHandler(
             if (name.isNotEmpty()) {
                 val newFolder = FlashcardFolder(
                     name = name,
-                    createdAt = getCurrentTimestamp(),
+                    createdAt = Timestamp.now(),
                     cardCount = 0
                 )
                 onFolderCreated(newFolder)
                 etFolderName.text.clear()
             }
         }
-    }
-
-    private fun getCurrentTimestamp(): String {
-        val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
-        return formatter.format(Date())
     }
 }

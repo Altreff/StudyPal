@@ -7,13 +7,10 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import com.example.flashmaster.R
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class FolderCreationDialog(
     private val context: Context,
-    private val onFolderCreated: (FlashcardFolder) -> Unit
+    private val onFolderCreated: (String) -> Unit
 ) {
     fun show() {
         val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_create_folder, null)
@@ -22,7 +19,7 @@ class FolderCreationDialog(
         val shareCodeInput = dialogView.findViewById<EditText>(R.id.etShareCode)
 
         val dialog = AlertDialog.Builder(context)
-            .setTitle("Creation Options")
+            .setTitle("Create New Folder")
             .setView(dialogView)
             .setCancelable(true)
             .create()
@@ -30,20 +27,21 @@ class FolderCreationDialog(
         dialogView.findViewById<Button>(R.id.btnCreate).setOnClickListener {
             val folderName = folderNameInput.text.toString().trim()
             if (folderName.isNotEmpty()) {
-                val newFolder = FlashcardFolder(
-                    name = folderName,
-                    createdAt = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date()),
-                    cardCount = 0
-                )
-                onFolderCreated(newFolder)
+                onFolderCreated(folderName)
+                dialog.dismiss()
+            } else {
+                Toast.makeText(context, "Please enter a folder name", Toast.LENGTH_SHORT).show()
             }
-            dialog.dismiss()
         }
 
         dialogView.findViewById<Button>(R.id.btnGo).setOnClickListener {
             val code = shareCodeInput.text.toString().trim()
-            Toast.makeText(context, "Downloading folder with code: $code", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
+            if (code.isNotEmpty()) {
+                Toast.makeText(context, "Downloading folder with code: $code", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            } else {
+                Toast.makeText(context, "Please enter a share code", Toast.LENGTH_SHORT).show()
+            }
         }
 
         dialog.show()
