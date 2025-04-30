@@ -23,6 +23,7 @@ class HomeFragment : Fragment() {
     private lateinit var folderAdapter: FolderAdapter
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private var authStateListener: FirebaseAuth.AuthStateListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -77,32 +78,41 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupAuthObserver() {
-        auth.addAuthStateListener { firebaseAuth ->
+        authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
-            binding.btnAuth.text = if (user != null) "Logout" else "Login"
-            if (user != null) {
-                loadFolders()
-            } else {
-                folderAdapter.submitList(emptyList())
+            _binding?.let { binding ->
+                binding.btnAuth.text = if (user != null) "Logout" else "Login"
+                if (user != null) {
+                    loadFolders()
+                } else {
+                    folderAdapter.submitList(emptyList())
+                }
             }
         }
+        auth.addAuthStateListener(authStateListener!!)
     }
 
     private fun loadFolders() {
         val userId = auth.currentUser?.uid ?: return
         db.collection("folders")
             .whereEqualTo("userId", userId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, e ->
-                if (e != null) {
-                    Snackbar.make(binding.root, "Error loading folders: ${e.message}", Snackbar.LENGTH_SHORT).show()
-                    return@addSnapshotListener
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val folders = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        FlashcardFolder.fromMap(doc.id, doc.data ?: return@mapNotNull null)
+                    } catch (e: Exception) {
+                        null
+                    }
+                }.sortedByDescending { it.createdAt }
+                _binding?.let {
+                    folderAdapter.submitList(folders)
                 }
-
-                val folders = snapshot?.documents?.mapNotNull { doc ->
-                    FlashcardFolder.fromMap(doc.id, doc.data ?: return@mapNotNull null)
-                } ?: emptyList()
-                folderAdapter.submitList(folders)
+            }
+            .addOnFailureListener { e ->
+                _binding?.let {
+                    Snackbar.make(it.root, "Error loading folders: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                }
             }
     }
 
@@ -127,15 +137,23 @@ class HomeFragment : Fragment() {
         db.collection("folders")
             .add(folder.toMap())
             .addOnSuccessListener { documentReference ->
-                Snackbar.make(binding.root, "Folder created successfully", Snackbar.LENGTH_SHORT).show()
+                _binding?.let {
+                    Snackbar.make(it.root, "Folder created successfully", Snackbar.LENGTH_SHORT).show()
+                    loadFolders() // Refresh the list after creating a folder
+                }
             }
             .addOnFailureListener { e ->
-                Snackbar.make(binding.root, "Error creating folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                _binding?.let {
+                    Snackbar.make(it.root, "Error creating folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                }
             }
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        authStateListener?.let {
+            auth.removeAuthStateListener(it)
+        }
         _binding = null
+        super.onDestroyView()
     }
 }
