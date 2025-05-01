@@ -10,5 +10,6 @@ data class SettingsItem(
 enum class SettingsType {
     THEME,
     NOTIFICATION,
-    SHARE
+    SHARE,
+    ALARM
 } 
