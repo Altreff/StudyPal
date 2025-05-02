@@ -57,4 +57,16 @@
             app:popUpTo="@id/loginFragment"
             app:popUpToInclusive="true" />
     </fragment>
+
+    <fragment
+        android:id="@+id/quizFragment"
+        android:name="com.example.flashmaster.Quizz.QuizFragment"
+        android:label="Quiz"
+        tools:layout="@layout/fragment_quiz">
+        <argument
+            android:name="folderId"
+            app:argType="string" />
+    </fragment>
+
+
 </navigation>
