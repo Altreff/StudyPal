@@ -6,7 +6,9 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDelegate
@@ -18,14 +20,27 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flashmaster.R
 import android.app.TimePickerDialog
+import com.example.flashmaster.databinding.FragmentSettingsBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
-class SettingsFragment : Fragment(R.layout.fragment_settings) {
+class SettingsFragment : Fragment() {
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
     private lateinit var themeHelper: ThemeHelper
     private lateinit var notificationHelper: NotificationHelper
     private lateinit var alarmHelper: AlarmHelper
     private lateinit var recyclerView: RecyclerView
     private lateinit var settingsAdapter: SettingsAdapter
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentSettingsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -44,6 +59,10 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         recyclerView.layoutManager = LinearLayoutManager(context)
         
         setupAdapter()
+        setupBottomNavigation()
+
+        // Set the selected item
+        binding.bottomNavigation.selectedItemId = R.id.navigation_settings
     }
 
     private fun setupAdapter() {
@@ -162,5 +181,30 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 setupAdapter()
             }
         }
+    }
+
+    private fun setupBottomNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_folders -> {
+                    findNavController().navigate(R.id.homeFragment)
+                    true
+                }
+                R.id.navigation_search -> {
+                    findNavController().navigate(R.id.searchFragment)
+                    true
+                }
+                R.id.navigation_settings -> {
+                    // Already in settings view
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        _binding = null
+        super.onDestroyView()
     }
 } 
