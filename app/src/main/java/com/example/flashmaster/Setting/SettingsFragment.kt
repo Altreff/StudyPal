@@ -17,10 +17,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flashmaster.R
+import android.app.TimePickerDialog
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private lateinit var themeHelper: ThemeHelper
     private lateinit var notificationHelper: NotificationHelper
+    private lateinit var alarmHelper: AlarmHelper
     private lateinit var recyclerView: RecyclerView
     private lateinit var settingsAdapter: SettingsAdapter
     private val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
@@ -31,6 +33,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
         themeHelper = ThemeHelper(requireContext())
         notificationHelper = NotificationHelper(requireContext())
+        alarmHelper = AlarmHelper(requireContext())
         
         // Set up back button
         view.findViewById<Button>(R.id.btnBack)?.setOnClickListener {
@@ -76,6 +79,17 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                         toggleNotificationState()
                     }
                 }
+                SettingsType.ALARM -> {
+                    // Toggle alarm state
+                    val currentState = alarmHelper.isAlarmEnabled()
+                    alarmHelper.setAlarmEnabled(!currentState)
+                    if (!currentState) {
+                        // If enabling alarm, show time picker
+                        showTimePicker()
+                    }
+                    // Refresh the adapter to update the switch state
+                    setupAdapter()
+                }
                 SettingsType.SHARE -> {
                     // Share the app
                     val shareIntent = Intent(Intent.ACTION_SEND)
@@ -84,7 +98,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                     startActivity(Intent.createChooser(shareIntent, "Share via"))
                 }
             }
-        }, themeHelper.isDarkMode(), notificationHelper.isNotificationEnabled())
+        }, themeHelper.isDarkMode(), notificationHelper.isNotificationEnabled(), alarmHelper.isAlarmEnabled())
         
         recyclerView.adapter = settingsAdapter
     }
@@ -104,6 +118,26 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 NOTIFICATION_PERMISSION_REQUEST_CODE
             )
         }
+    }
+
+    private fun showTimePicker() {
+        val currentTime = alarmHelper.getAlarmTime()
+        val timeParts = currentTime.split(":")
+        val hour = timeParts[0].toInt()
+        val minute = timeParts[1].toInt()
+
+        val timePickerDialog = TimePickerDialog(
+            requireContext(),
+            { _, selectedHour, selectedMinute ->
+                val formattedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
+                alarmHelper.setAlarmTime(formattedTime)
+                // TODO: Set up the actual alarm with AlarmManager
+            },
+            hour,
+            minute,
+            true
+        )
+        timePickerDialog.show()
     }
 
     override fun onRequestPermissionsResult(

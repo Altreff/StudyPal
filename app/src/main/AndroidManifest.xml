@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -45,6 +47,15 @@
                     android:scheme="https" />
             </intent-filter>
         </activity>
+
+        <receiver
+            android:name=".Setting.AlarmReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.example.flashmaster.ALARM_ACTION" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -11,7 +11,8 @@ import com.example.flashmaster.R
 class SettingsAdapter(
     private val onItemClick: (SettingsItem) -> Unit,
     private val isDarkMode: Boolean,
-    private val isNotificationEnabled: Boolean
+    private val isNotificationEnabled: Boolean,
+    private val isAlarmEnabled: Boolean
 ) : RecyclerView.Adapter<SettingsAdapter.ViewHolder>() {
 
     private val items = listOf(
@@ -29,6 +30,12 @@ class SettingsAdapter(
         ),
         SettingsItem(
             3,
+            "Alarm",
+            "Set daily study reminder",
+            SettingsType.ALARM
+        ),
+        SettingsItem(
+            4,
             "Share App",
             "Share this app with friends",
             SettingsType.SHARE
@@ -71,6 +78,13 @@ class SettingsAdapter(
                 SettingsType.NOTIFICATION -> {
                     switchSetting.visibility = View.VISIBLE
                     switchSetting.isChecked = isNotificationEnabled
+                    switchSetting.setOnCheckedChangeListener { _, _ ->
+                        onItemClick(item)
+                    }
+                }
+                SettingsType.ALARM -> {
+                    switchSetting.visibility = View.VISIBLE
+                    switchSetting.isChecked = isAlarmEnabled
                     switchSetting.setOnCheckedChangeListener { _, _ ->
                         onItemClick(item)
                     }
