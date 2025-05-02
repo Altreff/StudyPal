@@ -1,57 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
-    android:padding="20dp"
+    android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <TextView
-        android:text="Create new folder"
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create New Folder"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:gravity="center"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/etFolderName"
-        android:hint="Enter folder name"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingHorizontal="12dp" />
+        android:layout_height="wrap_content"
+        android:hint="Folder Name"
+        android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnCreate"
-        android:layout_marginTop="8dp"
-        android:text="Create"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Folder"
+        android:layout_marginBottom="16dp"/>
 
     <View
-        android:layout_marginVertical="16dp"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="#CCCCCC" />
-
-    <TextView
-        android:text="Download folder using share code"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:background="#DDDDDD"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
-
-        android:id="@+id/etShareCode"
-        android:hint="Enter share code"
+        android:id="@+id/etFolderCode"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingHorizontal="12dp" />
+        android:layout_height="wrap_content"
+        android:hint="Enter Folder Code"
+        android:layout_marginBottom="8dp"/>
 
     <Button
-        android:id="@+id/btnGo"
-        android:layout_marginTop="8dp"
-        android:text="Go"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:id="@+id/btnAddByCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Add Folder by Code"/>
 
 </LinearLayout>

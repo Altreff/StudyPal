@@ -1,33 +1,40 @@
 package com.example.flashmaster.FoldersPart.New
 
 import com.google.firebase.Timestamp
-import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.DocumentSnapshot
 
 data class FlashcardFolder(
-    @DocumentId
-    val id: String = "",
-    val userId: String = "",
+    val id: String,
     val name: String,
-    val createdAt: Timestamp = Timestamp.now(),
-    val cardCount: Int = 0
+    val userId: String,
+    val createdAt: Timestamp,
+    val cardCount: Int,
+    val originalFolderId: String? = null
 ) {
     fun toMap(): Map<String, Any> {
         return mapOf(
-            "userId" to userId,
             "name" to name,
+            "userId" to userId,
             "createdAt" to createdAt,
             "cardCount" to cardCount
-        )
+        ).let { map ->
+            if (originalFolderId != null) {
+                map + ("originalFolderId" to originalFolderId)
+            } else {
+                map
+            }
+        }
     }
 
     companion object {
-        fun fromMap(id: String, map: Map<String, Any>): FlashcardFolder {
+        fun fromMap(id: String, data: Map<String, Any>): FlashcardFolder {
             return FlashcardFolder(
                 id = id,
-                userId = map["userId"] as String,
-                name = map["name"] as String,
-                createdAt = map["createdAt"] as Timestamp,
-                cardCount = (map["cardCount"] as Long).toInt()
+                name = data["name"] as String,
+                userId = data["userId"] as String,
+                createdAt = data["createdAt"] as Timestamp,
+                cardCount = (data["cardCount"] as? Number)?.toInt() ?: 0,
+                originalFolderId = data["originalFolderId"] as? String
             )
         }
     }

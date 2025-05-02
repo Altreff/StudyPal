@@ -14,6 +14,7 @@ import com.google.firebase.firestore.Query
 import com.example.flashmaster.FoldersPart.New.FlashcardFolder
 import com.example.flashmaster.FoldersPart.New.FolderAdapter
 import com.example.flashmaster.FoldersPart.New.FolderCreationDialog
+import com.example.flashmaster.FoldersPart.New.ShareFolderDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
 
@@ -44,11 +45,19 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        folderAdapter = FolderAdapter { folder ->
-            // Navigate to FlashcardFragment with folder ID
-            val action = HomeFragmentDirections.actionHomeFragmentToFlashcardFragment(folder.id)
-            findNavController().navigate(action)
-        }
+        folderAdapter = FolderAdapter(
+            onFolderClick = { folder ->
+                // Navigate to FlashcardFragment with folder ID
+                val action = HomeFragmentDirections.actionHomeFragmentToFlashcardFragment(folder.id)
+                findNavController().navigate(action)
+            },
+            onShareClick = { folder ->
+                showShareFolderDialog(folder)
+            },
+            onFolderUpdated = {
+                loadFolders() // Refresh the list when a folder is updated or deleted
+            }
+        )
         binding.cardsRecyclerView.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = folderAdapter
@@ -92,7 +101,7 @@ class HomeFragment : Fragment() {
         auth.addAuthStateListener(authStateListener!!)
     }
 
-    private fun loadFolders() {
+    fun loadFolders() {
         val userId = auth.currentUser?.uid ?: return
         db.collection("folders")
             .whereEqualTo("userId", userId)
@@ -123,30 +132,64 @@ class HomeFragment : Fragment() {
                 createNewFolder(folderName)
             }
         )
-        dialog.show()
+        dialog.show(childFragmentManager, "FolderCreationDialog")
     }
 
     private fun createNewFolder(folderName: String) {
         val userId = auth.currentUser?.uid ?: return
-        val folder = FlashcardFolder(
-            name = folderName,
-            userId = userId,
-            createdAt = Timestamp.now(),
-            cardCount = 0
-        )
+        
+        // First check if a folder with this name already exists
         db.collection("folders")
-            .add(folder.toMap())
-            .addOnSuccessListener { documentReference ->
-                _binding?.let {
-                    Snackbar.make(it.root, "Folder created successfully", Snackbar.LENGTH_SHORT).show()
-                    loadFolders() // Refresh the list after creating a folder
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("name", folderName)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.isEmpty) {
+                    // Only create a new folder if one with this name doesn't exist
+                    val folder = FlashcardFolder(
+                        id = "", // The ID will be set by Firestore when we add the document
+                        name = folderName,
+                        userId = userId,
+                        createdAt = Timestamp.now(),
+                        cardCount = 0
+                    )
+                    db.collection("folders")
+                        .add(folder.toMap())
+                        .addOnSuccessListener { documentReference ->
+                            _binding?.let {
+                                Snackbar.make(it.root, "Folder created successfully", Snackbar.LENGTH_SHORT).show()
+                                loadFolders() // Refresh the list after creating a folder
+                            }
+                        }
+                        .addOnFailureListener { e ->
+                            _binding?.let {
+                                Snackbar.make(it.root, "Error creating folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                } else {
+                    // Just refresh the list if the folder already exists
+                    loadFolders()
                 }
             }
             .addOnFailureListener { e ->
                 _binding?.let {
-                    Snackbar.make(it.root, "Error creating folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(it.root, "Error checking for existing folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun showShareFolderDialog(folder: FlashcardFolder) {
+        val dialog = ShareFolderDialog(folder.id, folder.name)
+        dialog.show(childFragmentManager, "ShareFolderDialog")
+    }
+
+    // Add this method to handle folder updates from code
+    fun addFolderByCode(folderName: String) {
+        if (auth.currentUser == null) {
+            Snackbar.make(binding.root, "Please log in to create folders", Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        createNewFolder(folderName)
     }
 
     override fun onDestroyView() {

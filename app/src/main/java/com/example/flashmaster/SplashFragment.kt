@@ -15,7 +15,10 @@ class SplashFragment : Fragment(R.layout.fragment_splash) {
 
         // jump to home page after 2 seconds
         Handler(Looper.getMainLooper()).postDelayed({
-            findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+            // Only navigate if we're not already on the home fragment
+            if (findNavController().currentDestination?.id != R.id.homeFragment) {
+                findNavController().navigate(R.id.action_splashFragment_to_homeFragment)
+            }
         }, 2000)
     }
 }
