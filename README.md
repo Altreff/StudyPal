@@ -1,0 +1,1 @@
+The StudyPal is the app that helps you to learn the notes that you made in your app, you can share the folders with flashcards with your friends with code or the link, it also has the quiz function that can check how well did you learn the material of your flashcards, with our app your learning experience can be much easier!
