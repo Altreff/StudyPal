@@ -18,10 +18,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flashmaster.R
 import android.app.TimePickerDialog
+import org.koin.android.ext.android.inject
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
     private lateinit var themeHelper: ThemeHelper
-    private lateinit var notificationHelper: NotificationHelper
+    private val notificationHelper: NotificationHelper by inject()
     private lateinit var alarmHelper: AlarmHelper
     private lateinit var recyclerView: RecyclerView
     private lateinit var settingsAdapter: SettingsAdapter
@@ -32,7 +33,6 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         Log.d("DEBUG", "SettingsFragment loaded")
 
         themeHelper = ThemeHelper(requireContext())
-        notificationHelper = NotificationHelper(requireContext())
         alarmHelper = AlarmHelper(requireContext())
         
         // Set up back button

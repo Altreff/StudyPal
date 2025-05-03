@@ -9,8 +9,8 @@ class ThemeHelper(private val context: Context) {
     private val THEME_KEY = "theme_mode"
 
     init {
-        // Apply the saved theme or use light theme by default
-        val savedMode = prefs.getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_NO)
+        // Always use the last user choice, or system default if never set
+        val savedMode = prefs.getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         AppCompatDelegate.setDefaultNightMode(savedMode)
     }
 
@@ -20,7 +20,7 @@ class ThemeHelper(private val context: Context) {
     }
 
     fun isDarkMode(): Boolean {
-        val currentMode = prefs.getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_NO)
+        val currentMode = prefs.getInt(THEME_KEY, AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         return currentMode == AppCompatDelegate.MODE_NIGHT_YES
     }
 } 

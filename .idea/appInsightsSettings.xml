@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.example.flashmaster" />
+                  <option name="mobileSdkAppId" value="1:927671980064:android:63e028750335fcda3eec45" />
+                  <option name="projectId" value="flashmaster-10875" />
+                  <option name="projectNumber" value="927671980064" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
