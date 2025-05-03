@@ -176,7 +176,7 @@ class MainActivity : AppCompatActivity() {
                     .await()
 
                 Log.d("MainActivity", "Found ${flashcardsSnapshot.documents.size} flashcards to copy")
-                
+
                 // Create local flashcard entities
                 val localFlashcards = flashcardsSnapshot.documents.map { flashcardDoc ->
                     val flashcardData = flashcardDoc.data ?: return@map null
@@ -197,8 +197,8 @@ class MainActivity : AppCompatActivity() {
                 // Find the HomeFragment and refresh the folders list
                 val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
                 if (navHostFragment is NavHostFragment) {
-                    val homeFragment = navHostFragment.childFragmentManager.fragments.firstOrNull { 
-                        it is HomeFragment 
+                    val homeFragment = navHostFragment.childFragmentManager.fragments.firstOrNull {
+                        it is HomeFragment
                     } as? HomeFragment
                     homeFragment?.loadFolders()
                 }
@@ -222,7 +222,7 @@ class MainActivity : AppCompatActivity() {
         if (intent?.action == Intent.ACTION_VIEW) {
             val uri = intent.data ?: return
             Log.d("MainActivity", "Processing URI: $uri")
-            
+
             val folderId = when {
                 uri.scheme == "studypal" && uri.host == "folder" -> {
                     uri.pathSegments.firstOrNull()

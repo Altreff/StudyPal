@@ -96,12 +96,31 @@ class HomeFragment : Fragment() {
                 Snackbar.make(binding.root, "Please log in to create folders", Snackbar.LENGTH_SHORT).show()
             }
         }
+        binding.btnAuth.setOnClickListener {
+            if (auth.currentUser != null) {
+                auth.signOut()
+            } else {
+                findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
+            }
+        }
+        binding.btnAuthText.setOnClickListener {
+            if (auth.currentUser != null) {
+                auth.signOut()
+            } else {
+                findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
+            }
+        }
     }
+
+
+
+
 
     private fun setupAuthObserver() {
         authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             _binding?.let { binding ->
+                binding.btnAuthText.text = if (user != null) "Logout" else "Login"
                 if (user != null) {
                     loadFolders()
                 } else {

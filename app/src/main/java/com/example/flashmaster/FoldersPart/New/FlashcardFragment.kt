@@ -8,7 +8,6 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.flashmaster.Quizz.QuizFragment
 import com.example.flashmaster.R
 import com.example.flashmaster.databinding.FragmentFlashcardBinding
 import com.google.firebase.auth.FirebaseAuth

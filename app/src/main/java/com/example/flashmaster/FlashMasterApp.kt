@@ -16,19 +16,19 @@ import org.koin.dsl.module
 
 class FlashMasterApp : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    
+
     lateinit var flashcardRepository: FlashcardRepository
         private set
-    
+
     lateinit var networkUtils: NetworkUtils
         private set
-    
+
     lateinit var syncManager: SyncManager
         private set
 
     override fun onCreate() {
         super.onCreate()
-        
+
         // Initialize components
         flashcardRepository = FlashcardRepository(this)
         networkUtils = NetworkUtils(this)
@@ -36,7 +36,7 @@ class FlashMasterApp : Application() {
             flashcardRepository.localRepository,
             flashcardRepository.firebaseRepository
         )
-        
+
         // Observe network state and sync when online
         networkUtils.networkState
             .onEach { isOnline ->

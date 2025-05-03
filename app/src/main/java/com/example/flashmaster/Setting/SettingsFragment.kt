@@ -18,8 +18,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flashmaster.R
 import android.app.TimePickerDialog
+import com.example.flashmaster.databinding.FragmentSettingsBinding
 
 class SettingsFragment : Fragment(R.layout.fragment_settings) {
+    private var _binding: FragmentSettingsBinding? = null
+    private val binding get() = _binding!!
     private lateinit var themeHelper: ThemeHelper
     private lateinit var notificationHelper: NotificationHelper
     private lateinit var alarmHelper: AlarmHelper
@@ -44,6 +47,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
         recyclerView.layoutManager = LinearLayoutManager(context)
         
         setupAdapter()
+        setupBottomNavigation()
     }
 
     private fun setupAdapter() {
@@ -160,6 +164,25 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 // Reset the switch state
                 notificationHelper.setNotificationEnabled(false)
                 setupAdapter()
+            }
+        }
+    }
+    private fun setupBottomNavigation() {
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_folders -> {
+                    findNavController().navigate(R.id.homeFragment)
+                    true
+                }
+                R.id.navigation_search -> {
+                    findNavController().navigate(R.id.searchFragment)
+                    true
+                }
+                R.id.navigation_settings -> {
+                    // Already in settings view
+                    true
+                }
+                else -> false
             }
         }
     }
