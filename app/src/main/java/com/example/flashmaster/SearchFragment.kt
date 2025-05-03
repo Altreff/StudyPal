@@ -37,9 +37,8 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupSearchInput()
         setupBottomNavigation()
+        binding.bottomNavigation.selectedItemId = R.id.navigation_settings
 
-        // Set the selected item
-        binding.bottomNavigation.selectedItemId = R.id.navigation_search
     }
 
     private fun setupRecyclerView() {

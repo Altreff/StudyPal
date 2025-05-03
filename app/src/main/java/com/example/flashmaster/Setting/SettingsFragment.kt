@@ -32,6 +32,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentSettingsBinding.bind(view)
         Log.d("DEBUG", "SettingsFragment loaded")
 
         themeHelper = ThemeHelper(requireContext())
@@ -185,5 +186,9 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                 else -> false
             }
         }
+    }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 } 
