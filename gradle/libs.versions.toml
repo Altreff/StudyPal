@@ -1,6 +1,6 @@
 [versions]
 agp = "8.8.2"
-kotlin = "1.9.23"
+kotlin = "1.9.24"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
@@ -14,6 +14,9 @@ navigationFragment = "2.8.9"
 navigation = "2.8.9"
 fragment_ktx = "1.6.2"
 firebaseAuthKtx = "23.2.0"
+koin = "3.5.3"
+koinAndroid = "3.5.3"
+okhttp = "4.12.0"
 
 [libraries]
 #noinspection SimilarGradleDependency
@@ -31,6 +34,12 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fragment-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
 firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koinAndroid" }
+koin-android-compat = { group = "io.insert-koin", name = "koin-android-compat", version.ref = "koinAndroid" }
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
+okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

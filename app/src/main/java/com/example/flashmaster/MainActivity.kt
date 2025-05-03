@@ -33,9 +33,9 @@ class MainActivity : AppCompatActivity() {
     private var pendingFolderId: String? = null
 
     // Offline support components
-    private val repository by lazy { (application as FlashMasterApplication).flashcardRepository }
-    private val networkUtils by lazy { (application as FlashMasterApplication).networkUtils }
-    private val syncManager by lazy { (application as FlashMasterApplication).syncManager }
+    private val repository by lazy { (application as FlashMasterApp).flashcardRepository }
+    private val networkUtils by lazy { (application as FlashMasterApp).networkUtils }
+    private val syncManager by lazy { (application as FlashMasterApp).syncManager }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
