@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.NavController
 import com.example.flashmaster.databinding.ActivityMainBinding
@@ -15,6 +16,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
 import com.example.flashmaster.FoldersPart.New.FlashcardFolder
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import com.example.flashmaster.data.local.FolderEntity
+import com.example.flashmaster.data.local.FlashcardEntity
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -23,6 +31,11 @@ class MainActivity : AppCompatActivity() {
     private var pendingDeepLink: Intent? = null
     private var navController: NavController? = null
     private var pendingFolderId: String? = null
+
+    // Offline support components
+    private val repository by lazy { (application as FlashMasterApplication).flashcardRepository }
+    private val networkUtils by lazy { (application as FlashMasterApplication).networkUtils }
+    private val syncManager by lazy { (application as FlashMasterApplication).syncManager }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +59,9 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        // Observe network state
+        observeNetworkState()
 
         // Process deep link after NavController is ready
         navController?.addOnDestinationChangedListener { _, destination, _ ->
@@ -71,106 +87,127 @@ class MainActivity : AppCompatActivity() {
         handleDeepLink(intent)
     }
 
+    private fun observeNetworkState() {
+        networkUtils.networkState
+            .onEach { isOnline ->
+                if (isOnline) {
+                    // Show online indicator
+                    Snackbar.make(binding.root, "Online - Syncing data...", Snackbar.LENGTH_SHORT).show()
+                    // Sync data when online
+                    auth.currentUser?.uid?.let { userId ->
+                        lifecycleScope.launch {
+                            try {
+                                syncManager.syncAllData(userId)
+                                Snackbar.make(binding.root, "Sync completed", Snackbar.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                Snackbar.make(binding.root, "Sync failed: ${e.message}", Snackbar.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                } else {
+                    // Show offline indicator
+                    Snackbar.make(binding.root, "Offline - Using local data", Snackbar.LENGTH_LONG).show()
+                }
+            }
+            .launchIn(lifecycleScope)
+    }
+
     private fun copySharedFolder(originalFolderId: String) {
         val currentUserId = auth.currentUser?.uid ?: return
         Log.d("MainActivity", "Starting to copy folder: $originalFolderId for user: $currentUserId")
 
-        // First check if the user already has this folder
-        db.collection("folders")
-            .whereEqualTo("userId", currentUserId)
-            .whereEqualTo("originalFolderId", originalFolderId)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                Log.d("MainActivity", "Check for existing folder result: ${snapshot.documents.size} documents found")
-                if (snapshot.isEmpty) {
-                    // User doesn't have this folder yet, let's copy it
-                    Log.d("MainActivity", "Folder not found in user's collection, proceeding with copy")
-                    db.collection("folders").document(originalFolderId)
-                        .get()
-                        .addOnSuccessListener { originalFolderDoc ->
-                            if (!originalFolderDoc.exists()) {
-                                Log.d("MainActivity", "Original folder not found in database")
-                                Snackbar.make(binding.root, "Folder not found", Snackbar.LENGTH_SHORT).show()
-                                return@addOnSuccessListener
-                            }
+        lifecycleScope.launch {
+            try {
+                // First check if the user already has this folder
+                val existingFolders = repository.getFolders(currentUserId). first()
+                val alreadyHasFolder = existingFolders.any { folder -> folder.id == originalFolderId }
 
-                            Log.d("MainActivity", "Original folder found, creating copy")
-                            val originalFolder = FlashcardFolder.fromMap(
-                                originalFolderDoc.id,
-                                originalFolderDoc.data ?: return@addOnSuccessListener
-                            )
-
-                            // Create a new folder with the same content but new owner
-                            val newFolder = FlashcardFolder(
-                                id = "", // The ID will be set by Firestore when we add the document
-                                name = originalFolder.name,
-                                userId = currentUserId,
-                                createdAt = Timestamp.now(),
-                                cardCount = originalFolder.cardCount,
-                                originalFolderId = originalFolderId
-                            )
-
-                            // Add the new folder
-                            db.collection("folders")
-                                .add(newFolder.toMap())
-                                .addOnSuccessListener { newFolderRef ->
-                                    Log.d("MainActivity", "New folder created with ID: ${newFolderRef.id}")
-                                    // Copy all flashcards from the original folder
-                                    db.collection("flashcards")
-                                        .whereEqualTo("folderId", originalFolderId)
-                                        .get()
-                                        .addOnSuccessListener { flashcardsSnapshot ->
-                                            Log.d("MainActivity", "Found ${flashcardsSnapshot.documents.size} flashcards to copy")
-                                            val batch = db.batch()
-                                            for (flashcardDoc in flashcardsSnapshot.documents) {
-                                                val flashcardData = flashcardDoc.data ?: continue
-                                                val newFlashcardRef = db.collection("flashcards").document()
-                                                batch.set(newFlashcardRef, flashcardData.apply {
-                                                    put("folderId", newFolderRef.id)
-                                                })
-                                            }
-                                            batch.commit()
-                                                .addOnSuccessListener {
-                                                    Log.d("MainActivity", "Successfully copied all flashcards")
-                                                    Snackbar.make(binding.root, "Folder copied successfully", Snackbar.LENGTH_SHORT).show()
-                                                    
-                                                    // Find the HomeFragment and refresh the folders list
-                                                    val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
-                                                    if (navHostFragment is NavHostFragment) {
-                                                        val homeFragment = navHostFragment.childFragmentManager.fragments.firstOrNull { 
-                                                            it is HomeFragment 
-                                                        } as? HomeFragment
-                                                        homeFragment?.loadFolders()
-                                                    }
-                                                }
-                                                .addOnFailureListener { e ->
-                                                    Log.e("MainActivity", "Error copying flashcards", e)
-                                                    Snackbar.make(binding.root, "Error copying flashcards: ${e.message}", Snackbar.LENGTH_SHORT).show()
-                                                }
-                                        }
-                                        .addOnFailureListener { e ->
-                                            Log.e("MainActivity", "Error getting flashcards", e)
-                                            Snackbar.make(binding.root, "Error copying flashcards: ${e.message}", Snackbar.LENGTH_SHORT).show()
-                                        }
-                                }
-                                .addOnFailureListener { e ->
-                                    Log.e("MainActivity", "Error creating new folder", e)
-                                    Snackbar.make(binding.root, "Error copying folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
-                                }
-                        }
-                        .addOnFailureListener { e ->
-                            Log.e("MainActivity", "Error getting original folder", e)
-                            Snackbar.make(binding.root, "Error accessing shared folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
-                        }
-                } else {
+                if (alreadyHasFolder) {
                     Log.d("MainActivity", "User already has this folder")
                     Snackbar.make(binding.root, "You already have this folder", Snackbar.LENGTH_SHORT).show()
+                    return@launch
                 }
+
+                // Get the original folder from Firebase
+                val originalFolderDoc = db.collection("folders")
+                    .document(originalFolderId)
+                    .get()
+                    .await()
+
+                if (!originalFolderDoc.exists()) {
+                    Log.d("MainActivity", "Original folder not found in database")
+                    Snackbar.make(binding.root, "Folder not found", Snackbar.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                Log.d("MainActivity", "Original folder found, creating copy")
+                val originalFolder = FlashcardFolder.fromMap(
+                    originalFolderDoc.id,
+                    originalFolderDoc.data ?: return@launch
+                )
+
+                // Create a new folder with the same content but new owner
+                val newFolder = FlashcardFolder(
+                    id = "", // The ID will be set by Firestore when we add the document
+                    name = originalFolder.name,
+                    userId = currentUserId,
+                    createdAt = Timestamp.now(),
+                    cardCount = originalFolder.cardCount,
+                    originalFolderId = originalFolderId
+                )
+
+                // Add the new folder to both Firebase and local database
+                val newFolderRef = db.collection("folders")
+                    .add(newFolder.toMap())
+                    .await()
+
+                // Create local folder entity
+                val localFolder = FolderEntity(
+                    id = newFolderRef.id,
+                    name = newFolder.name,
+                    userId = currentUserId
+                )
+                repository.localRepository.insertFolder(localFolder)
+
+                // Copy all flashcards from the original folder
+                val flashcardsSnapshot = db.collection("flashcards")
+                    .whereEqualTo("folderId", originalFolderId)
+                    .get()
+                    .await()
+
+                Log.d("MainActivity", "Found ${flashcardsSnapshot.documents.size} flashcards to copy")
+                
+                // Create local flashcard entities
+                val localFlashcards = flashcardsSnapshot.documents.map { flashcardDoc ->
+                    val flashcardData = flashcardDoc.data ?: return@map null
+                    FlashcardEntity(
+                        id = flashcardDoc.id,
+                        folderId = newFolderRef.id,
+                        frontText = flashcardData["frontText"] as String,
+                        backText = flashcardData["backText"] as String
+                    )
+                }.filterNotNull()
+
+                // Insert flashcards into local database
+                repository.localRepository.insertFlashcards(localFlashcards)
+
+                // Show success message
+                Snackbar.make(binding.root, "Folder copied successfully", Snackbar.LENGTH_SHORT).show()
+
+                // Find the HomeFragment and refresh the folders list
+                val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment)
+                if (navHostFragment is NavHostFragment) {
+                    val homeFragment = navHostFragment.childFragmentManager.fragments.firstOrNull { 
+                        it is HomeFragment 
+                    } as? HomeFragment
+                    homeFragment?.loadFolders()
+                }
+
+            } catch (e: Exception) {
+                Log.e("MainActivity", "Error copying folder", e)
+                Snackbar.make(binding.root, "Error copying folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
             }
-            .addOnFailureListener { e ->
-                Log.e("MainActivity", "Error checking for existing folder", e)
-                Snackbar.make(binding.root, "Error checking for existing folder: ${e.message}", Snackbar.LENGTH_SHORT).show()
-            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

@@ -17,6 +17,7 @@ import com.example.flashmaster.FoldersPart.New.FolderCreationDialog
 import com.example.flashmaster.FoldersPart.New.ShareFolderDialog
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.Timestamp
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class HomeFragment : Fragment() {
     private var _binding: HomeBinding? = null
@@ -42,6 +43,29 @@ class HomeFragment : Fragment() {
         setupButtons()
         setupAuthObserver()
         loadFolders()
+        setupBottomNavigation()
+
+        // Set the selected item
+        binding.bottomNavigation.selectedItemId = R.id.navigation_folders
+
+        // Setup bottom navigation
+        binding.bottomNavigation.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.navigation_folders -> {
+                    // Already in folders view
+                    true
+                }
+                R.id.navigation_search -> {
+                    findNavController().navigate(R.id.searchFragment)
+                    true
+                }
+                R.id.navigation_settings -> {
+                    findNavController().navigate(R.id.settingsFragment)
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -72,25 +96,12 @@ class HomeFragment : Fragment() {
                 Snackbar.make(binding.root, "Please log in to create folders", Snackbar.LENGTH_SHORT).show()
             }
         }
-
-        binding.btnAuth.setOnClickListener {
-            if (auth.currentUser != null) {
-                auth.signOut()
-            } else {
-                findNavController().navigate(R.id.action_homeFragment_to_loginFragment)
-            }
-        }
-
-        binding.btnSettings.setOnClickListener {
-            findNavController().navigate(R.id.action_homeFragment_to_settingsFragment)
-        }
     }
 
     private fun setupAuthObserver() {
         authStateListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
             _binding?.let { binding ->
-                binding.btnAuth.text = if (user != null) "Logout" else "Login"
                 if (user != null) {
                     loadFolders()
                 } else {
@@ -190,6 +201,10 @@ class HomeFragment : Fragment() {
             return
         }
         createNewFolder(folderName)
+    }
+
+    private fun setupBottomNavigation() {
+        // Implementation of setupBottomNavigation method
     }
 
     override fun onDestroyView() {
