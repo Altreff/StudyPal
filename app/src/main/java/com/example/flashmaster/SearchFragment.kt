@@ -37,7 +37,7 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupSearchInput()
         setupBottomNavigation()
-        binding.bottomNavigation.selectedItemId = R.id.navigation_settings
+        binding.bottomNavigation.selectedItemId = R.id.navigation_search
 
     }
 
@@ -65,6 +65,10 @@ class SearchFragment : Fragment() {
         binding.searchEditText.setOnEditorActionListener { _, _, _ ->
             performSearch(binding.searchEditText.text.toString())
             true
+        }
+
+        binding.searchButton.setOnClickListener {
+            performSearch(binding.searchEditText.text.toString())
         }
     }
 

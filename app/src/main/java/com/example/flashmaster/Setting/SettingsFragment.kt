@@ -176,7 +176,7 @@ class SettingsFragment : Fragment(R.layout.fragment_settings) {
                     true
                 }
                 R.id.navigation_search -> {
-                    findNavController().navigate(R.id.searchFragment)
+                    findNavController().navigate(R.id.action_settingsFragment_to_searchFragment)
                     true
                 }
                 R.id.navigation_settings -> {
