@@ -4,21 +4,26 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.runtime.*
-import androidx.compose.ui.platform.ComposeView
-import androidx.fragment.app.Fragment
-import com.example.flashmaster.FoldersPart.New.Flashcard
-import com.google.firebase.firestore.FirebaseFirestore
-import androidx.compose.material3.*
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.fragment.app.Fragment
+import com.example.flashmaster.FoldersPart.New.Flashcard
 import com.example.flashmaster.ui.theme.FlashMasterTheme
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.launch
 
 class QuizFragment : Fragment() {
     private lateinit var folderId: String
@@ -44,8 +49,8 @@ class QuizFragment : Fragment() {
                     var incorrectCount by remember { mutableStateOf(0) }
                     var skippedCount by remember { mutableStateOf(0) }
                     var quizDone by remember { mutableStateOf(false) }
+                    val coroutineScope = rememberCoroutineScope()
 
-                    // Load flashcards only once
                     LaunchedEffect(folderId) {
                         db.collection("flashcards")
                             .whereEqualTo("folderId", folderId)
@@ -54,21 +59,6 @@ class QuizFragment : Fragment() {
                                 flashcards = snapshot.documents.mapNotNull {
                                     Flashcard.fromMap(it.id, it.data ?: return@mapNotNull null)
                                 }
-                                currentIndex = 0
-                                revealed = false
-                                correctCount = 0
-                                incorrectCount = 0
-                                skippedCount = 0
-                                quizDone = false
-                            }
-                            .addOnFailureListener {
-                                flashcards = emptyList()
-                                currentIndex = 0
-                                revealed = false
-                                correctCount = 0
-                                incorrectCount = 0
-                                skippedCount = 0
-                                quizDone = false
                             }
                     }
 
@@ -81,56 +71,141 @@ class QuizFragment : Fragment() {
                         )
                     } else {
                         val card = flashcards.getOrNull(currentIndex)
-                        val frontText = card?.frontText ?: "No Cards"
-                        val backText = card?.backText ?: "No Cards"
 
-                        FlashcardScreen(
-                            cardFrontText = frontText,
-                            cardBackText = backText,
-                            cardIndex = currentIndex,
-                            cardCount = flashcards.size,
-                            revealed = revealed,
-                            onBack = { requireActivity().onBackPressedDispatcher.onBackPressed() },
-                            onPrev = {
-                                if (flashcards.isNotEmpty() && currentIndex > 0) {
-                                    skippedCount++
-                                    currentIndex = (currentIndex - 1 + flashcards.size) % flashcards.size
-                                    revealed = false
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .pointerInput(Unit) {
+                                    detectHorizontalDragGestures { _, dragAmount ->
+                                        when {
+                                            dragAmount > 50 -> { // Swipe right
+                                                if (currentIndex > 0) {
+                                                    currentIndex--
+                                                    revealed = false
+                                                }
+                                            }
+                                            dragAmount < -50 -> { // Swipe left
+                                                if (currentIndex < flashcards.size - 1) {
+                                                    currentIndex++
+                                                    revealed = false
+                                                } else {
+                                                    quizDone = true
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            },
-                            onNext = {
-                                if (flashcards.isNotEmpty() && currentIndex < flashcards.size - 1) {
-                                    skippedCount++
-                                    currentIndex = (currentIndex + 1) % flashcards.size
-                                    revealed = false
-                                } else if (flashcards.isNotEmpty() && currentIndex == flashcards.size - 1) {
-                                    skippedCount++
-                                    quizDone = true
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onDoubleTap = { revealed = !revealed }
+                                    )
                                 }
-                            },
-                            onEdit = { /* TODO: Edit action */ },
-                            onReveal = {
-                                revealed = true
-                            },
-                            onCorrect = {
-                                correctCount++
-                                if (currentIndex < flashcards.size - 1) {
-                                    currentIndex++
-                                    revealed = false
-                                } else {
-                                    quizDone = true
-                                }
-                            },
-                            onIncorrect = {
-                                incorrectCount++
-                                if (currentIndex < flashcards.size - 1) {
-                                    currentIndex++
-                                    revealed = false
-                                } else {
-                                    quizDone = true
+                        ) {
+                            AnimatedVisibility(
+                                visible = !revealed,
+                                enter = fadeIn() + slideInHorizontally(),
+                                exit = fadeOut() + slideOutHorizontally()
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .height(200.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFF2196F3) // Material Blue
+                                    )
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = card?.frontText ?: "No Cards",
+                                            fontSize = 24.sp,
+                                            color = Color.White
+                                        )
+                                    }
                                 }
                             }
-                        )
+
+                            AnimatedVisibility(
+                                visible = revealed,
+                                enter = fadeIn() + slideInHorizontally { it },
+                                exit = fadeOut() + slideOutHorizontally { -it }
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp)
+                                        .height(200.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color(0xFF1976D2) // Darker Blue
+                                    )
+                                ) {
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = card?.backText ?: "No Cards",
+                                            fontSize = 24.sp,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp)
+                                    .align(Alignment.BottomCenter),
+                                horizontalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                Button(
+                                    onClick = {
+                                        incorrectCount++
+                                        if (currentIndex < flashcards.size - 1) {
+                                            currentIndex++
+                                            revealed = false
+                                        } else {
+                                            quizDone = true
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFE57373) // Light Red
+                                    )
+                                ) {
+                                    Text("Incorrect")
+                                }
+
+                                Button(
+                                    onClick = { revealed = !revealed },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF2196F3) // Blue
+                                    )
+                                ) {
+                                    Text(if (revealed) "Hide" else "Reveal")
+                                }
+
+                                Button(
+                                    onClick = {
+                                        correctCount++
+                                        if (currentIndex < flashcards.size - 1) {
+                                            currentIndex++
+                                            revealed = false
+                                        } else {
+                                            quizDone = true
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF81C784) // Light Green
+                                    )
+                                ) {
+                                    Text("Correct")
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -172,7 +247,7 @@ fun QuizResultScreen(correct: Int, incorrect: Int, skipped: Int, onDone: () -> U
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
                     .height(56.dp),
-                shape =         RoundedCornerShape(28.dp)
+                shape = RoundedCornerShape(28.dp)
             ) {
                 Text("Done", fontSize = 20.sp)
             }
